@@ -2,61 +2,416 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ズレない！指定文字数で改行君</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>改行の王様 - 究極の整形ツール</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Courier New', 'BIZ UDゴシック', monospace; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f0f4f8; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; font-size: 1.4rem; border-left: 5px solid #007bff; padding-left: 10px; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #555; }
-        input[type="number"] { width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        textarea { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; font-size: 16px; line-height: 1.2; font-family: monospace; }
-        textarea#inputText { height: 120px; }
-        textarea#outputText { height: 180px; background-color: #fafafa; white-space: pre; overflow-x: auto; }
-        .btn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; }
-        .hint { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
+        :root {
+            --primary-simple: #dbeafe; 
+            --primary-simple-text: #1e40af;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            transition: background-color 0.8s ease, color 0.5s ease;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .rainbow-text {
+            background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-move 3s linear infinite;
+        }
+
+        @keyframes rainbow-move {
+            to { background-position: 200% center; }
+        }
+
+        /* 実行ボタン：寒色系グラデーション */
+        .exec-rainbow-btn {
+            background: linear-gradient(45deg, #2563eb, #7c3aed, #0ea5e9, #10b981);
+            background-size: 300% 300%;
+            animation: rainbow-bg 3s linear infinite;
+            border: none;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* コピーボタン：低速虹色 */
+        .copy-rainbow-btn {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 300% 300%;
+            animation: rainbow-bg 2.4s linear infinite; /* 速度を半分に */
+            border: none;
+            color: white !important;
+        }
+
+        @keyframes rainbow-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .party-bg {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient-bg 8s ease infinite;
+        }
+
+        @keyframes gradient-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .explosion-emoji {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            user-select: none;
+            animation: explode-fade forwards ease-out;
+        }
+
+        @keyframes explode-fade {
+            0% { transform: translate(0, 0) scale(0.3) rotate(0deg); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(var(--s)) rotate(var(--r)); opacity: 0; }
+        }
+
+        /* 背景を漂う絵文字（よりダイナミックに） */
+        .floating-emoji {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.7;
+            animation: float-chaotic forwards linear;
+        }
+
+        @keyframes float-chaotic {
+            0% { transform: translate(0, 0) scale(0.2) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translate(var(--mx), var(--my)) scale(var(--ms)) rotate(var(--mr)); opacity: 0; }
+        }
+
+        textarea {
+            resize: both !important;
+            min-height: 120px;
+        }
+
+        /* 震えの速度を1/3に */
+        .shake-slow {
+            animation: shake-btn-slow 0.45s infinite;
+        }
+
+        @keyframes shake-btn-slow {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            25% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+            50% { transform: translate(1px, -1px) rotate(0.5deg); }
+            75% { transform: translate(-1px, 1px) rotate(-0.5deg); }
+            100% { transform: translate(1px, 1px) rotate(0deg); }
+        }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-700 flex flex-col items-center p-4" onclick="handleBgClick(event)">
 
-<div class="container">
-    <h1>ズレない！指定文字数で改行君</h1>
-    <div class="hint">※全角を2、半角を1として計算します</div>
+    <div class="fixed top-4 left-4 z-50">
+        <button id="toggleBtn" onclick="toggleMode(event)" class="bg-white px-6 py-3 rounded-full shadow-2xl border border-slate-200 hover:scale-110 transition-all font-bold flex items-center gap-2">
+            <span id="toggleEmoji">👑</span>
+            <span id="toggleText">👑モード</span>
+        </button>
+    </div>
 
-    <label for="widthLimit">一行の幅（半角文字数で指定）</label>
-    <input type="number" id="widthLimit" value="40" min="1">
+    <!-- エフェクトレイヤー -->
+    <div id="effect-layer" class="fixed inset-0 pointer-events-none z-40 overflow-hidden"></div>
+    <div id="background-emoji-layer" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
-    <label for="inputText">テキストを貼り付けてください</label>
-    <textarea id="inputText"></textarea>
+    <main class="w-full max-w-2xl mt-12 mb-12 z-10">
+        <div id="mainContainer" class="glass rounded-[2.5rem] p-8 md:p-12 shadow-2xl transition-all duration-1000">
+            <header class="text-center mb-10">
+                <h1 id="appTitle" class="text-4xl md:text-5xl font-medium tracking-tight text-slate-800 mb-3 transition-all duration-700">
+                    指定文字数で改行
+                </h1>
+                <p id="appSubtitle" class="text-slate-400 text-sm font-normal">テキストを最適な幅に整えます。</p>
+            </header>
 
-    <button class="btn" onclick="wrapTextByWidth()">改行を実行する</button>
+            <!-- 設定セクション -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div class="space-y-2">
+                    <label class="block text-sm font-normal text-slate-500 ml-1">一行の文字数（半角基準）</label>
+                    <input type="number" id="widthLimit" value="40" min="1" class="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-blue-300 outline-none transition-all font-mono text-xl shadow-inner bg-white/50">
+                </div>
+                <div class="flex items-end pb-3">
+                    <label class="relative flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" id="keepNewlines" checked class="w-6 h-6 rounded-lg border-2 border-slate-200 text-blue-500 focus:ring-0 transition-all cursor-pointer">
+                        <span class="text-sm font-normal text-slate-500">元の改行を維持する</span>
+                    </label>
+                </div>
+            </div>
 
-    <label for="outputText">結果：</label>
-    <textarea id="outputText" readonly></textarea>
-</div>
+            <!-- 入力・出力セクション -->
+            <div class="space-y-10">
+                <div class="relative group">
+                    <label class="block text-sm font-normal text-slate-500 mb-2 ml-1">入力テキスト</label>
+                    <textarea id="inputText" placeholder="ここに文章を貼り付けてください..." 
+                        class="w-full p-6 rounded-[2rem] border-2 border-slate-100 focus:border-blue-300 outline-none transition-all font-mono text-base shadow-inner bg-white/50"
+                        oninput="updateCount('input')"></textarea>
+                    <div class="absolute bottom-4 right-6 bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-medium" id="inputCount">0 文字</div>
+                </div>
 
-<script>
-    function wrapTextByWidth() {
-        const limit = parseInt(document.getElementById('widthLimit').value);
-        const text = document.getElementById('inputText').value.replace(/\n/g, "");
-        let result = "";
-        let currentWidth = 0;
+                <button id="execBtn" onclick="processText(event)" 
+                    class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-6 rounded-[2rem] shadow-lg transition-all transform active:scale-95 text-xl flex items-center justify-center gap-3 border-2 border-blue-200/50">
+                    改行を実行する
+                </button>
 
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            // 半角なら1、全角なら2としてカウント（簡易判定）
-            const charWidth = char.match(/[ -~]/) ? 1 : 2;
+                <div class="relative group">
+                    <label class="block text-sm font-normal text-slate-500 mb-2 ml-1">結果</label>
+                    <textarea id="outputText" readonly placeholder="結果がここに表示されます"
+                        class="w-full p-6 rounded-[2rem] border-2 border-slate-100 bg-slate-50/50 outline-none font-mono text-base shadow-inner"></textarea>
+                    <div class="absolute bottom-4 right-6 bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-medium" id="outputCount">0 文字</div>
+                </div>
 
-            if (currentWidth + charWidth > limit) {
-                result += "\n";
-                currentWidth = 0;
-            }
-            result += char;
-            currentWidth += charWidth;
-        }
+                <div class="flex flex-col sm:flex-row gap-5">
+                    <button id="copyBtn" onclick="copyResult(event)" 
+                        class="flex-[2] bg-slate-800 hover:bg-black text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xl border-b-4 border-slate-900">
+                        結果をコピー
+                    </button>
+                    <button id="clearBtn" onclick="clearAll(event)" 
+                        class="flex-1 bg-white border-2 border-slate-200 hover:bg-red-50 hover:border-red-100 hover:text-red-500 text-slate-400 font-bold py-5 rounded-2xl transition-all shadow-md">
+                        消去
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-16 text-center text-slate-400 text-[11px] font-medium uppercase tracking-[0.3em]">
+            &copy; 2024 改行の王様 - 究極の改行統治
+        </footer>
+    </main>
+
+    <script>
+        let isParty = false;
+        let bgInterval = null;
         
-        document.getElementById('outputText').value = result;
-    }
-</script>
+        const emojiList = [
+            '👑', '✨', '🌈', '💎', '🔥', '🚀', '💖', '🎉', '🌟', '🦄', '💥', '🎊', '💰', '🔱', '🏰',
+            '⚡', '🌀', '🎭', '🎨', '🎬', '🎤', '🎸', '🎹', '🎻', '🎷', '🎺', '👾', '🛸', '🛰️', '🪐',
+            '🦁', '🐲', '🦅', '🍀', '🌸', '🌵', '🍎', '🍓', '🍣', '🍦', '🍩', '🍹', '🎈', '🎁', '🔔',
+            '💠', '🌀', '🉐', '✅', '💯', '🆙', '🆒', '🔥', '🧨', '🧿', '🧬', '🧪', '🔭', '🔮', '🃏',
+            '🔱', '👑', '🤴', '👸', '⚔️', '🛡️', '🥇', '🦁', '🐅', '🐆', '🐯', '🐘', '🐉', '🐲', '👺'
+        ];
 
+        function toggleMode(e) {
+            if(e) e.stopPropagation();
+            isParty = !isParty;
+            const body = document.body;
+            const toggleText = document.getElementById('toggleText');
+            const toggleEmoji = document.getElementById('toggleEmoji');
+            const appTitle = document.getElementById('appTitle');
+            const execBtn = document.getElementById('execBtn');
+            const copyBtn = document.getElementById('copyBtn');
+
+            if (isParty) {
+                body.classList.add('party-bg');
+                toggleText.innerText = "シンプルに戻る";
+                toggleEmoji.innerText = "☁️";
+                appTitle.innerText = "👑改行の王様👑";
+                appTitle.classList.add('rainbow-text', 'text-7xl', 'font-black');
+                appTitle.classList.remove('font-medium', 'text-4xl', 'md:text-5xl');
+                
+                execBtn.classList.add('exec-rainbow-btn', 'shake-slow');
+                execBtn.innerText = "秘技：改行実行！！";
+                execBtn.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-200/50');
+                
+                copyBtn.classList.add('copy-rainbow-btn');
+                copyBtn.innerText = "コピーしちゃう？";
+                
+                startBackgroundChaos();
+            } else {
+                body.classList.remove('party-bg');
+                toggleText.innerText = "👑モード";
+                toggleEmoji.innerText = "👑";
+                appTitle.innerText = "指定文字数で改行";
+                appTitle.classList.remove('rainbow-text', 'text-7xl', 'font-black');
+                appTitle.classList.add('font-medium', 'text-4xl', 'md:text-5xl');
+                
+                execBtn.classList.remove('exec-rainbow-btn', 'shake-slow');
+                execBtn.innerText = "改行を実行する";
+                execBtn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200/50');
+                
+                copyBtn.classList.remove('copy-rainbow-btn');
+                copyBtn.innerText = "結果をコピー";
+                
+                stopBackgroundChaos();
+            }
+        }
+
+        function handleBgClick(e) {
+            if (!isParty) return;
+            const count = Math.floor(Math.random() * 10) + 15;
+            for(let i=0; i < count; i++) {
+                spawnEmoji(e.clientX, e.clientY);
+            }
+        }
+
+        function startBackgroundChaos() {
+            if (bgInterval) return;
+            bgInterval = setInterval(() => {
+                const rx = Math.random() * window.innerWidth;
+                const ry = Math.random() * window.innerHeight;
+                spawnBackgroundEmoji(rx, ry);
+            }, 250);
+        }
+
+        function stopBackgroundChaos() {
+            clearInterval(bgInterval);
+            bgInterval = null;
+            document.getElementById('background-emoji-layer').innerHTML = '';
+        }
+
+        function spawnBackgroundEmoji(x, y) {
+            const el = document.createElement('div');
+            el.className = 'floating-emoji';
+            el.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
+            
+            const mx = (Math.random() - 0.5) * 600 + 'px';
+            const my = (Math.random() - 0.5) * 600 + 'px';
+            const ms = Math.random() * 3.0 + 1.0;
+            const mr = Math.random() * 720 + 'deg';
+            const duration = Math.random() * 2.0 + 2.0 + 's';
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.setProperty('--mx', mx);
+            el.style.setProperty('--my', my);
+            el.style.setProperty('--ms', ms);
+            el.style.setProperty('--mr', mr);
+            el.style.animationDuration = duration;
+            el.style.fontSize = Math.random() * 40 + 20 + 'px';
+
+            document.getElementById('background-emoji-layer').appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        function spawnEmoji(x, y) {
+            const el = document.createElement('div');
+            el.className = 'explosion-emoji';
+            el.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
+            
+            const tx = (Math.random() - 0.5) * 800 + 'px';
+            const ty = (Math.random() - 0.5) * 800 + 'px';
+            const scale = Math.random() * 2.5 + 1;
+            const rot = Math.random() * 1080 + 'deg';
+            const duration = Math.random() * 0.8 + 1.2 + 's'; // 前回より1秒短縮
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.setProperty('--tx', tx);
+            el.style.setProperty('--ty', ty);
+            el.style.setProperty('--s', scale);
+            el.style.setProperty('--r', rot);
+            el.style.animationDuration = duration;
+            el.style.fontSize = Math.random() * 30 + 20 + 'px';
+
+            document.getElementById('effect-layer').appendChild(el);
+            setTimeout(() => el.remove(), 2500);
+        }
+
+        function processText(e) {
+            if(e) e.stopPropagation();
+            const input = document.getElementById('inputText').value;
+            const limit = parseInt(document.getElementById('widthLimit').value) || 40;
+            const keepNewlines = document.getElementById('keepNewlines').checked;
+
+            if (!input.trim()) return;
+
+            if (isParty) {
+                const rect = document.getElementById('execBtn').getBoundingClientRect();
+                for(let i=0; i<30; i++) spawnEmoji(rect.left + rect.width/2, rect.top + rect.height/2);
+            }
+
+            let source = input;
+            if (!keepNewlines) {
+                source = source.replace(/\n/g, "");
+            }
+
+            let result = "";
+            let currentWidth = 0;
+            const lines = keepNewlines ? source.split('\n') : [source];
+
+            lines.forEach((line, lineIndex) => {
+                currentWidth = 0;
+                for (let char of line) {
+                    const charWidth = char.match(/[ -~｡-ﾟ]/) ? 1 : 2;
+                    if (currentWidth + charWidth > limit) {
+                        result += "\n";
+                        currentWidth = 0;
+                    }
+                    result += char;
+                    currentWidth += charWidth;
+                }
+                if (lineIndex < lines.length - 1) {
+                    result += "\n";
+                }
+            });
+
+            document.getElementById('outputText').value = result;
+            updateCount('output');
+        }
+
+        function updateCount(type) {
+            const val = document.getElementById(type === 'input' ? 'inputText' : 'outputText').value;
+            document.getElementById(type + 'Count').innerText = val.length + ' 文字';
+        }
+
+        function copyResult(e) {
+            if(e) e.stopPropagation();
+            const output = document.getElementById('outputText');
+            if (!output.value) return;
+
+            output.select();
+            try {
+                document.execCommand('copy');
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.innerText;
+                
+                if (isParty) {
+                    copyBtn.innerText = "コピーできちゃった！？";
+                    const rect = copyBtn.getBoundingClientRect();
+                    for(let i=0; i<20; i++) spawnEmoji(rect.left + rect.width/2, rect.top + rect.height/2);
+                } else {
+                    copyBtn.innerText = "コピー完了！";
+                    copyBtn.classList.replace('bg-slate-800', 'bg-green-600');
+                }
+                
+                setTimeout(() => {
+                    copyBtn.innerText = originalText;
+                    if (!isParty) copyBtn.classList.replace('bg-green-600', 'bg-slate-800');
+                }, 2000);
+            } catch (err) {
+                console.error('コピー失敗', err);
+            }
+        }
+
+        function clearAll(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('inputText').value = "";
+            document.getElementById('outputText').value = "";
+            updateCount('input');
+            updateCount('output');
+        }
+    </script>
 </body>
 </html>
