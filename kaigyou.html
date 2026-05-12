@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ズレない！指定文字数で改行君</title>
+    <style>
+        body { font-family: 'Courier New', 'BIZ UDゴシック', monospace; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f0f4f8; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; font-size: 1.4rem; border-left: 5px solid #007bff; padding-left: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #555; }
+        input[type="number"] { width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        textarea { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; font-size: 16px; line-height: 1.2; font-family: monospace; }
+        textarea#inputText { height: 120px; }
+        textarea#outputText { height: 180px; background-color: #fafafa; white-space: pre; overflow-x: auto; }
+        .btn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; }
+        .hint { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ズレない！指定文字数で改行君</h1>
+    <div class="hint">※全角を2、半角を1として計算します</div>
+
+    <label for="widthLimit">一行の幅（半角文字数で指定）</label>
+    <input type="number" id="widthLimit" value="40" min="1">
+
+    <label for="inputText">テキストを貼り付けてください</label>
+    <textarea id="inputText"></textarea>
+
+    <button class="btn" onclick="wrapTextByWidth()">改行を実行する</button>
+
+    <label for="outputText">結果：</label>
+    <textarea id="outputText" readonly></textarea>
+</div>
+
+<script>
+    function wrapTextByWidth() {
+        const limit = parseInt(document.getElementById('widthLimit').value);
+        const text = document.getElementById('inputText').value.replace(/\n/g, "");
+        let result = "";
+        let currentWidth = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            // 半角なら1、全角なら2としてカウント（簡易判定）
+            const charWidth = char.match(/[ -~]/) ? 1 : 2;
+
+            if (currentWidth + charWidth > limit) {
+                result += "\n";
+                currentWidth = 0;
+            }
+            result += char;
+            currentWidth += charWidth;
+        }
+        
+        document.getElementById('outputText').value = result;
+    }
+</script>
+
+</body>
+</html>
